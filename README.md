@@ -45,7 +45,7 @@ This game was created for a school assignment to demonstrate skills in:
 4. Collect coins and avoid enemies
 5. Reach the green platform at the end to win
 
-## Future Improvements
+## Future Improvements (Not happening in this assignment)
 
 - Add more levels
 - Implement more complex enemy AI
