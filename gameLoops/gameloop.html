@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        body {
+            background-color: black;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+        }
+
+        p {
+            color: white;
+            text-align: center;
+            font-size: 25px;
+        }
+
+        canvas {
+            display: block;
+            margin: 0 auto;
+        }
+
+        button {
+            display: block;
+            margin: 10px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: black;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+    <h1>kubus bounce animatie, met speed verhoging buttons</h1>
+    <p>Speed x is voor naar rechts en speed y is voor omlaag <br> met de juiste timing gaat hij heel snel</p>
+
+
+    <canvas id="cdBox" width="800" height="600" style="border: 1px solid black;"></canvas>
+    <script>
+
+        const canvas = document.getElementById('cdBox');
+        const create = canvas.getContext('2d');
+
+
+        const rect = {
+            x: 100,
+            y: 100,
+            width: 65,
+            height: 65,
+            speedX: 3,
+            speedY: 3,
+            color: 'Yellow'
+        };
+        function speedX(rect) {
+            rect.speedX += 1;
+            return rect.speedX;
+        }
+
+        function speedY(rect) {
+            rect.speedY += 1;
+            return rect.speedY;
+        }
+        rect.speedX = speedX(rect);
+        rect.speedY = speedY(rect);
+
+        function update() {
+
+            rect.x += rect.speedX;
+            rect.y += rect.speedY;
+
+
+            if (rect.x <= 0 || rect.x + rect.width >= canvas.width) {
+                rect.speedX *= -1;
+            }
+
+
+            if (rect.y <= 0 || rect.y + rect.height >= canvas.height) {
+                rect.speedY *= -1;
+            }
+        }
+
+        function render() {
+
+            create.clearRect(0, 0, canvas.width, canvas.height);
+            create.strokeStyle = 'white';
+            create.strokeRect(0, 0, canvas.width, canvas.height);
+            create.fillStyle = rect.color;
+            create.fillRect(rect.x, rect.y, rect.width, rect.height);
+        }
+
+        function tick() {
+            update();
+            render();
+            window.requestAnimationFrame(tick);
+        }
+
+
+        window.requestAnimationFrame(tick);
+    </script>
+    <button id="speedButton" onclick="rect.speedX = speedX(rect)">Activate SpeedX</button>
+    <button id="speedYButton" onclick="rect.speedY = speedY(rect)">Activate SpeedY</button>
+</body>
+
+</html>

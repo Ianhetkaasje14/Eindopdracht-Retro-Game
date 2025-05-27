@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <style>
+        ul {
+            display: flex;
+            list-style: none;
+        }
+
+        li {
+            padding: 5px 10px;
+        }
+    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <emails>
+        <email>
+            <naam>Ian</naam>
+            <email>Ian.Hendriks@example.com</email>
+            <verstuurenAan>jane.doe@example.com</verstuurenAan>
+            <onderwerp>Kaas</onderwerp>
+            <bericht>Kaas is heel lekker</bericht>
+        </email>
+        <email>
+            <naam>Declan Rice</naam>
+            <email>Declan.Rice@example.com</email>
+            <verstuurenAan>john.smith@example.com</verstuurenAan>
+            <onderwerp>Kaas</onderwerp>
+            <bericht>Kaas is heel lekker</bericht>
+        </email>
+    </emails>
+
+
+    <nav id="mainMenu"></nav>
+
+    <script>
+        const jsonData = {
+            "emails": {
+                "email": [
+                    {
+                        "naam": "Ian",
+                        "email": "Ian.Hendriks@example.com",
+                        "verstuurenAan": "jane.doe@example.com",
+                        "onderwerp": "Kaas",
+                        "bericht": "Kaas is heel lekker"
+                    },
+                    {
+                        "naam": "Declan Rice",
+                        "email": "Declan.Rice@example.com",
+                        "verstuurenAan": "john.smith@example.com",
+                        "onderwerp": "Kaas",
+                        "bericht": "Kaas is heel lekker"
+                    }
+                ]
+            }
+        };
+        console.log(jsonData);
+
+        const navmenuData = fetch('navmenu.json')
+            .then(response => response.json())
+            .then(data => {
+                console.log(data);
+
+
+                const menuContainer = document.getElementById('mainMenu');
+                const ul = document.createElement('ul');
+
+
+                data.forEach(item => {
+                    const li = document.createElement('li');
+                    const a = document.createElement('a');
+                    a.href = item.url;
+                    a.textContent = item.title;
+                    li.appendChild(a);
+                    ul.appendChild(li);
+                });
+
+                menuContainer.appendChild(ul);
+            })
+            .catch(error => console.error('Error loading navmenu.json:', error));
+    </script>
+</body>
+
+</html>

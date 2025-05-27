@@ -1,0 +1,20 @@
+{
+    "emails": {
+        "email": [
+            {
+                "naam": "Ian",
+                "email": "Ian.Hendriks@example.com",
+                "verstuurenAan": "jane.doe@example.com",
+                "onderwerp": "Kaas",
+                "bericht": "Kaas is heel lekker"
+            },
+            {
+                "naam": "Declan Rice",
+                "email": "Declan.Rice@example.com",
+                "verstuurenAan": "john.smith@example.com",
+                "onderwerp": "Kaas",
+                "bericht": "Kaas is heel lekker"
+            }
+        ]
+    }
+}
