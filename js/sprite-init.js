@@ -1,4 +1,8 @@
+/**
+ * Initialize game sprites by loading images and creating sprite objects
+ */
 async function initSprites() {
+    // List of image assets to load
     const imageAssets = {
         images: {
             player: 'assets/sprites/player.png',
@@ -8,14 +12,17 @@ async function initSprites() {
         }
     };
 
+    // Set up loading progress callback
     assetLoader.onProgress = (progress) => {
         gameState.loading.progress = progress;
     };
 
     try {
+        // Load all images
         const loadedAssets = await assetLoader.loadAssets(imageAssets);
         gameState.assets.images = loadedAssets.images;
 
+        // Create player sprite if image loaded successfully
         if (gameState.assets.images.player) {
             gameState.player.sprite = new Sprite({
                 position: { x: gameState.player.x, y: gameState.player.y },
@@ -25,8 +32,10 @@ async function initSprites() {
             });
         }
 
+        // Loading complete
         gameState.loading.complete = true;
     } catch (error) {
+        // Set loading as complete even if there was an error
         gameState.loading.complete = true;
     }
 }

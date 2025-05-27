@@ -1,68 +1,63 @@
 
+// Simple Sprite class for handling game images and animations
 class Sprite {
     constructor(options) {
+        // Position and size properties
         this.position = options.position || { x: 0, y: 0 };
         this.size = options.size || { width: 32, height: 32 };
         this.color = options.color || "#FF0000";
         this.image = options.image || null;
+
+        // Animation properties
         this.frames = options.frames || { max: 1, current: 0, elapsed: 0, hold: 10 };
-        this.offset = options.offset || { x: 0, y: 0 };
+
+        // Direction (1 = right, -1 = left)
         this.direction = 1;
     }
 
+    // Draw the sprite on the canvas
     draw(ctx) {
-        if (this.image) {
-            const frameWidth = this.image.width / this.frames.max;
-
-            ctx.save();
-
-            if (this.direction === -1) {
-                ctx.translate(this.position.x + this.size.width, this.position.y);
-                ctx.scale(-1, 1);
-                ctx.drawImage(
-                    this.image,
-                    this.frames.current * frameWidth,
-                    0,
-                    frameWidth,
-                    this.image.height,
-                    0,
-                    0,
-                    this.size.width,
-                    this.size.height
-                );
-            } else {
-                ctx.drawImage(
-                    this.image,
-                    this.frames.current * frameWidth,
-                    0,
-                    frameWidth,
-                    this.image.height,
-                    this.position.x,
-                    this.position.y,
-                    this.size.width,
-                    this.size.height
-                );
-            }
-
-            ctx.restore();
-
-            if (this.frames.max > 1) {
-                this.frames.elapsed++;
-                if (this.frames.elapsed % this.frames.hold === 0) {
-                    this.frames.current++;
-                    if (this.frames.current >= this.frames.max) {
-                        this.frames.current = 0;
-                    }
-                }
-            }
-        } else {
+        // If no image is available, draw a colored rectangle
+        if (!this.image) {
             ctx.fillStyle = this.color;
-            ctx.fillRect(
-                this.position.x,
-                this.position.y,
-                this.size.width,
-                this.size.height
+            ctx.fillRect(this.position.x, this.position.y, this.size.width, this.size.height);
+            return;
+        }
+
+        // Calculate the width of each frame in the sprite sheet
+        const frameWidth = this.image.width / this.frames.max;
+
+        // Save the current canvas state
+        ctx.save();
+
+        // Draw the sprite facing left or right
+        if (this.direction === -1) {
+            // Flip horizontally for left direction
+            ctx.translate(this.position.x + this.size.width, this.position.y);
+            ctx.scale(-1, 1);
+            ctx.drawImage(
+                this.image,
+                this.frames.current * frameWidth, 0, frameWidth, this.image.height,
+                0, 0, this.size.width, this.size.height
             );
+        } else {
+            // Normal drawing for right direction
+            ctx.drawImage(
+                this.image,
+                this.frames.current * frameWidth, 0, frameWidth, this.image.height,
+                this.position.x, this.position.y, this.size.width, this.size.height
+            );
+        }
+
+        // Restore the canvas state
+        ctx.restore();
+
+        // Handle animation by updating the current frame
+        if (this.frames.max > 1) {
+            this.frames.elapsed++;
+            if (this.frames.elapsed % this.frames.hold === 0) {
+                this.frames.current = (this.frames.current + 1) % this.frames.max;
+            }
         }
     }
 }
