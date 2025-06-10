@@ -25,9 +25,7 @@ class AssetLoader {
         this.totalAssets++;
 
         return new Promise((resolve, reject) => {
-            const img = new Image();
-
-            // When image loads successfully
+            const img = new Image();            // When image loads successfully
             img.onload = () => {
                 this.images[name] = img;
                 this.loadedAssets++;
@@ -37,7 +35,7 @@ class AssetLoader {
 
             // When image fails to load
             img.onerror = () => {
-                console.error(`Failed to load image: ${src}`);
+                console.error(`Failed to load image: ${name} from ${src}`);
                 this.loadedAssets++;
                 this.updateProgress();
                 resolve(null);

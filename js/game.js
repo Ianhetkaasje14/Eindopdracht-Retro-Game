@@ -91,7 +91,6 @@ const ctx = canvas.getContext('2d');
 const startScreen = document.getElementById('start-screen');
 const gameOverScreen = document.getElementById('game-over-screen');
 const startButton = document.getElementById('start-button');
-const restartButton = document.getElementById('restart-button');
 const scoreElement = document.getElementById('score');
 const livesElement = document.getElementById('lives');
 const finalScoreElement = document.getElementById('final-score');
@@ -108,7 +107,7 @@ document.addEventListener('keyup', keyUp);
 
 // Button clicks
 startButton.addEventListener('click', startGame);
-restartButton.addEventListener('click', restartGameWithTimeReset);
+// Note: restartButton event listener is set up in window.onload
 
 /**
  * Load game sounds asynchronously
@@ -224,27 +223,57 @@ function initLevel() {
         height: 50,
         color: "#00FF00",
         isGoal: true  // Special flag to detect when player reaches the goal
-    });
+    });    // Create coins for the player to collect
+    // Position coins in jumping paths between platforms
+    const coinPositions = [
+        // Coins above platforms (safe positions)
+        { x: 220, y: 420 },  // Above first platform (200, 450)
+        { x: 420, y: 370 },  // Above second platform (400, 400)
+        { x: 620, y: 320 },  // Above third platform (600, 350)
+        { x: 820, y: 270 },  // Above fourth platform (800, 300)
+        { x: 1020, y: 320 }, // Above fifth platform (1000, 350)
+        { x: 1220, y: 370 }, // Above sixth platform (1200, 400)
+        { x: 1500, y: 320 }, // Above large platform center (1400, 350)
+        { x: 1720, y: 420 }, // Above eighth platform (1700, 450)
+        { x: 1950, y: 370 }, // Above ninth platform (1900, 400)
+        
+        // Coins in jumping paths between platforms (mid-air positions)
+        { x: 120, y: 480 },  // Between start and first platform
+        { x: 300, y: 425 },  // Between first and second platform
+        { x: 500, y: 375 },  // Between second and third platform
+        { x: 700, y: 325 },  // Between third and fourth platform
+        { x: 900, y: 325 },  // Between fourth and fifth platform
+        { x: 1100, y: 385 }, // Between fifth and sixth platform
+        { x: 1300, y: 375 }, // Between sixth and large platform
+        { x: 1600, y: 400 }, // On the large platform (right side)
+        { x: 1800, y: 400 }, // Between large platform and eighth
+        { x: 2050, y: 480 }, // Between ninth platform and goal
+        
+        // Additional strategic coins for exploration
+        { x: 50, y: 450 },   // Early game coin
+        { x: 750, y: 280 },  // High coin above fourth platform
+        { x: 1450, y: 300 }, // High coin above large platform
+        { x: 2100, y: 450 }  // Near goal area
+    ];
 
-    // Create coins for the player to collect
-    for (let i = 0; i < 20; i++) {
-        // Position coins throughout the level
+    for (let i = 0; i < coinPositions.length; i++) {
+        const coinPos = coinPositions[i];
         const coin = {
-            x: 200 + i * 100 + Math.random() * 50,  // Distribute coins horizontally
-            y: 300 + Math.random() * 100,           // Vary the height
+            x: coinPos.x,
+            y: coinPos.y,
             width: 20,
             height: 20,
             color: "#FFD700",                       // Gold color as fallback
             collected: false                        // Track if coin is collected
         };
 
-        // Assign a sprite if coin image is loaded
+        // Assign a sprite if coin image is loaded (no animation)
         if (gameState.assets.images && gameState.assets.images.coin) {
             coin.sprite = new Sprite({
                 position: { x: coin.x, y: coin.y },
                 size: { width: coin.width, height: coin.height },
                 image: gameState.assets.images.coin,
-                frames: { max: 4, current: 0, elapsed: 0, hold: 10 }  // Animation frames
+                frames: { max: 1, current: 0, elapsed: 0, hold: 0 }  // No animation
             });
         }
 
@@ -286,8 +315,18 @@ function initLevel() {
  * @param {KeyboardEvent} e - The keyboard event
  */
 function keyDown(e) {
-    // Only process input when the game is active
-    if (gameState.gameStarted && !gameState.gameOver) {
+    // P or Escape - toggle pause (should work even when paused, but not when game is over)
+    if (e.key === 'p' || e.key === 'Escape') {
+        // Only allow pausing if game has started and is not over
+        if (gameState.gameStarted && !gameState.gameOver) {
+            togglePause();
+        }
+        e.preventDefault(); // Prevent browser escape actions
+        return; // Exit early to prevent other input processing
+    }
+
+    // Only process other input when the game is active and not paused
+    if (gameState.gameStarted && !gameState.gameOver && !gameState.gamePaused) {
         // Right arrow - move right
         if (e.key === 'ArrowRight') {
             keys.right = true;
@@ -307,12 +346,6 @@ function keyDown(e) {
             gameState.player.velocityY = -gameState.player.jumpPower;
             playSound('jump');
             e.preventDefault(); // Prevent browser scrolling/space bar actions
-        }
-
-        // P or Escape - toggle pause
-        if (e.key === 'p' || e.key === 'Escape') {
-            togglePause();
-            e.preventDefault(); // Prevent browser escape actions
         }
     }
 }
@@ -344,11 +377,20 @@ function togglePause() {
     const pauseScreen = document.getElementById('pause-screen');
     if (pauseScreen) {
         pauseScreen.style.display = gameState.gamePaused ? 'flex' : 'none';
-    }
-
-    // Restart the game loop if unpausing
+    }    // Restart the game loop if unpausing
     if (!gameState.gamePaused) {
-        gameLoop();
+        // Set flag to skip collision detection on first frame after unpause
+        gameState.justUnpaused = true;
+        
+        // Reset time tracking to prevent large delta jumps when resuming
+        if (gameState.time) {
+            gameState.time.lastUpdate = null;
+        }
+        
+        // Small delay before resuming to ensure pause state is fully cleared
+        setTimeout(() => {
+            gameLoop();
+        }, 16); // One frame delay (roughly 16ms at 60fps)
     }
 }
 
@@ -368,11 +410,11 @@ async function startGame() {
         progressBar.style.width = `${progress * 100}%`;
     };
 
-    // Initialize game components
-    initLevel();
-
-    // Wait for all assets to load (both sounds and sprites)
+    // Wait for all assets to load first (both sounds and sprites)
     await Promise.all([initSounds(), initSprites()]);
+
+    // Initialize game components after assets are loaded
+    initLevel();
 
     // Hide loading screen
     document.getElementById('loading-screen').style.display = 'none';
@@ -395,6 +437,18 @@ function restartGame() {
  * Handles platform landing, coin collection, and enemy hits
  */
 function checkCollisions() {
+    // Don't check collisions if game is paused
+    if (gameState.gamePaused) {
+        return;
+    }
+    
+    // Additional safety: Skip collision detection for one frame after unpausing
+    // This prevents false collisions when resuming
+    if (gameState.justUnpaused) {
+        gameState.justUnpaused = false;
+        return;
+    }
+    
     // Track if player is standing on a platform
     let onPlatform = false;
 
@@ -511,6 +565,12 @@ function gameOver() {
     // Play game over sound
     playSound('gameOver');
 
+    // Update the heading to show "Game Over"
+    const gameOverHeading = document.querySelector('#game-over-screen h1');
+    if (gameOverHeading) {
+        gameOverHeading.textContent = 'Game Over';
+    }
+
     // Update final score display
     finalScoreElement.textContent = `You collected ${gameState.score} coins`;
 
@@ -525,8 +585,14 @@ function gameWin() {
     // Set game over state (win is a type of game end)
     gameState.gameOver = true;
 
+    // Update the heading to show "You Win!"
+    const gameOverHeading = document.querySelector('#game-over-screen h1');
+    if (gameOverHeading) {
+        gameOverHeading.textContent = 'You Win!';
+    }
+
     // Update final score with win message
-    finalScoreElement.textContent = `You won! You collected ${gameState.score} coins`;
+    finalScoreElement.textContent = `You collected ${gameState.score} coins`;
 
     // Show game over screen
     gameOverScreen.style.display = 'flex';
@@ -670,11 +736,12 @@ function gameLoop() {
  */
 window.onload = function () {
     // Initialize error handling
-    initErrorHandling();
-
-    // Set up pause screen buttons
+    initErrorHandling();    // Set up pause screen buttons
     const resumeButton = document.getElementById('resume-button');
     const restartFromPauseButton = document.getElementById('restart-from-pause-button');
+    
+    // Set up game over screen button
+    const restartButton = document.getElementById('restart-button');
 
     // Add event listeners to pause screen buttons
     if (resumeButton) {
@@ -684,6 +751,26 @@ window.onload = function () {
     if (restartFromPauseButton) {
         restartFromPauseButton.addEventListener('click', restartGameWithTimeReset);
     }
+      // Add event listener to game over screen button
+    if (restartButton) {
+        restartButton.addEventListener('click', restartGameWithTimeReset);
+    }
+
+    // Auto-pause when changing tabs or losing window focus
+    document.addEventListener('visibilitychange', function() {
+        // Only auto-pause if game is running (not already paused, not game over, and game started)
+        if (gameState.gameStarted && !gameState.gameOver && !gameState.gamePaused && document.hidden) {
+            togglePause();
+        }
+    });
+
+    // Additional fallback for older browsers or window focus events
+    window.addEventListener('blur', function() {
+        // Only auto-pause if game is running
+        if (gameState.gameStarted && !gameState.gameOver && !gameState.gamePaused) {
+            togglePause();
+        }
+    });
 
     // Make sure the game captures keyboard events
     window.addEventListener('click', function () {

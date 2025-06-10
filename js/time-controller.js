@@ -59,6 +59,11 @@ function restartGameWithTimeReset() {
  * This makes movement consistent regardless of frame rate
  */
 function updateWithDelta(delta) {
+    // Don't update anything if game is paused
+    if (gameState.gamePaused) {
+        return;
+    }
+    
     // Player movement based on keyboard input
     if (keys.right) {
         gameState.player.velocityX += gameState.player.speed * delta;
