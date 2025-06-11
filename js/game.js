@@ -1,72 +1,50 @@
 
-/**
- * Retro Jumper - A 2D platformer game
- * 
- * This file contains the main game logic including:
- * - Game state management
- * - Player controls
- * - Game objects (platforms, coins, enemies)
- * - Collision detection
- * - Game loop
- */
-
-/**
- * Main gameState object - Stores all game data
- * This is the central object that keeps track of the entire game state
- */
-const gameState = {    // Player properties
+const gameState = {
     player: {
-        x: 50,                // X position
-        y: 0,                 // Y position
-        width: 32,            // Width of player (will be adjusted by sprite loader)
-        height: 32,           // Height of player (will be adjusted by sprite loader)
-        velocityX: 0,         // Horizontal velocity
-        velocityY: 0,         // Vertical velocity
-        speed: 9,             // Movement speed
-        jumpPower: 12,        // Jump strength
-        isJumping: false,     // Is player currently in the air?
-        lives: 3,             // Number of lives
-        color: "#FF0000",     // Fallback color if sprite fails to load
-        sprite: null          // Will hold the player sprite object
+        x: 50,
+        y: 0,
+        width: 32,
+        height: 32,
+        velocityX: 0,
+        velocityY: 0,
+        speed: 9,
+        jumpPower: 12,
+        isJumping: false,
+        lives: 3,
+        color: "#FF0000",
+        sprite: null
     },
 
-    // Game object collections
-    coins: [],                // Array of coin objects
-    enemies: [],              // Array of enemy objects
-    platforms: [],            // Array of platform objects
+    coins: [],
+    enemies: [],
+    platforms: [],
 
-    // Physics constants
-    gravity: 0.5,             // Gravity pulling player down
-    friction: 0.8,            // Friction slowing player down
+    gravity: 0.5,
+    friction: 0.8,
 
-    // Game state flags
-    score: 0,                 // Player's score (coins collected)
-    gameOver: false,          // Is the game over?
-    gameStarted: false,       // Has the game started?
-    gamePaused: false,        // Is the game paused?
+    score: 0,
+    gameOver: false,
+    gameStarted: false,
+    gamePaused: false,
 
-    // Level properties
     level: {
-        width: 2400,          // Total level width
-        height: 600           // Level height
+        width: 2400,
+        height: 600
     },
 
-    // Camera for scrolling
     camera: {
-        x: 0,                 // Camera X offset
-        y: 0                  // Camera Y offset
+        x: 0,
+        y: 0
     },
 
-    // Asset containers
     assets: {
-        images: {},           // Stores loaded images
-        sounds: {}            // Stores loaded sounds
+        images: {},
+        sounds: {}
     },
 
-    // Loading state
     loading: {
-        progress: 0,          // Loading progress (0-1)
-        complete: false       // Is loading complete?
+        progress: 0,
+        complete: false
     }
 };
 
