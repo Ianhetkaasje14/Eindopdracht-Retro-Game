@@ -1,4 +1,3 @@
-
 /**
  * Retro Jumper - A 2D platformer game
  * 
@@ -22,7 +21,7 @@ const gameState = {    // Player properties
         height: 32,           // Height of player (will be adjusted by sprite loader)
         velocityX: 0,         // Horizontal velocity
         velocityY: 0,         // Vertical velocity
-        speed: 9,             // Movement speed
+        speed: 20,             // Movement speed
         jumpPower: 12,        // Jump strength
         isJumping: false,     // Is player currently in the air?
         lives: 3,             // Number of lives
@@ -67,6 +66,14 @@ const gameState = {    // Player properties
     loading: {
         progress: 0,          // Loading progress (0-1)
         complete: false       // Is loading complete?
+    },
+
+    // Debugging information
+    debug: {
+        show: false,          // Is debug info visible?
+        frameRate: 0,         // Current frame rate
+        deltaTime: 0,         // Time per frame
+        physicsSteps: 0       // Number of physics steps per frame
     }
 };
 
@@ -434,6 +441,7 @@ function restartGame() {
 /**
  * Check for collisions between the player and other game objects
  * Handles platform landing, coin collection, and enemy hits
+ * Enhanced to prevent tunneling at low frame rates
  */
 function checkCollisions() {
     // Don't check collisions if game is paused
@@ -453,25 +461,63 @@ function checkCollisions() {
 
     // Check collisions with all platforms
     for (let platform of gameState.platforms) {
-        // Check if player is on top of platform
-        if (
-            // Horizontal collision detection
-            gameState.player.x < platform.x + platform.width &&
-            gameState.player.x + gameState.player.width > platform.x &&
-            // Vertical collision detection - only count if player is falling onto platform
-            gameState.player.y + gameState.player.height >= platform.y &&
-            gameState.player.y + gameState.player.height <= platform.y + platform.height / 2 &&
-            gameState.player.velocityY >= 0
-        ) {
-            // Position player on top of platform
-            gameState.player.y = platform.y - gameState.player.height;
-            gameState.player.velocityY = 0;
-            gameState.player.isJumping = false;
-            onPlatform = true;
+        // More robust collision detection that prevents tunneling
+        const playerLeft = gameState.player.x;
+        const playerRight = gameState.player.x + gameState.player.width;
+        const playerTop = gameState.player.y;
+        const playerBottom = gameState.player.y + gameState.player.height;
+        
+        const platformLeft = platform.x;
+        const platformRight = platform.x + platform.width;
+        const platformTop = platform.y;
+        const platformBottom = platform.y + platform.height;
+        
+        // Check if player overlaps with platform horizontally
+        const horizontalOverlap = playerRight > platformLeft && playerLeft < platformRight;
+        
+        // Check for vertical collision (landing on top of platform)
+        if (horizontalOverlap) {
+            // Player is falling and would land on platform
+            const isLandingOnTop = gameState.player.velocityY >= 0 && 
+                                 playerBottom >= platformTop && 
+                                 playerTop < platformTop;
+            
+            // Player is moving up and hitting platform from below
+            const isHittingFromBelow = gameState.player.velocityY < 0 && 
+                                     playerTop <= platformBottom && 
+                                     playerBottom > platformBottom;
+            
+            if (isLandingOnTop) {
+                // Snap player to top of platform
+                gameState.player.y = platformTop - gameState.player.height;
+                gameState.player.velocityY = 0;
+                gameState.player.isJumping = false;
+                onPlatform = true;
 
-            // Check if this platform is the goal
-            if (platform.isGoal) {
-                gameWin();
+                // Check if this platform is the goal
+                if (platform.isGoal) {
+                    gameWin();
+                }
+            } else if (isHittingFromBelow) {
+                // Snap player to bottom of platform and stop upward movement
+                gameState.player.y = platformBottom;
+                gameState.player.velocityY = 0;
+            }
+        }
+        
+        // Check for horizontal collisions (side walls)
+        const verticalOverlap = playerBottom > platformTop && playerTop < platformBottom;
+        
+        if (verticalOverlap && !onPlatform) {
+            // Player is moving right and hitting left side of platform
+            if (gameState.player.velocityX > 0 && playerRight >= platformLeft && playerLeft < platformLeft) {
+                gameState.player.x = platformLeft - gameState.player.width;
+                gameState.player.velocityX = 0;
+            }
+            // Player is moving left and hitting right side of platform
+            else if (gameState.player.velocityX < 0 && playerLeft <= platformRight && playerRight > platformRight) {
+                gameState.player.x = platformRight;
+                gameState.player.velocityX = 0;
             }
         }
     }
@@ -698,6 +744,15 @@ function draw() {
 
         // Draw player sprite
         gameState.player.sprite.draw(ctx);
+        
+        // Optional debug info (uncomment to see frame rate and physics info)
+        /*
+        ctx.fillStyle = "#000000";
+        ctx.font = "16px Arial";
+        ctx.fillText(`FPS: ${gameState.debug.frameRate}`, gameState.camera.x + 10, 30);
+        ctx.fillText(`Delta: ${gameState.debug.deltaTime.toFixed(4)}s`, gameState.camera.x + 10, 50);
+        ctx.fillText(`Physics Steps: ${gameState.debug.physicsSteps}`, gameState.camera.x + 10, 70);
+        */
     } else {
         // Fallback to rectangle if sprite not available
         ctx.fillStyle = gameState.player.color;
