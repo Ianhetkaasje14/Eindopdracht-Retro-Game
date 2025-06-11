@@ -1,15 +1,9 @@
 
-/**
- * Time-based animation controller for the game
- * This ensures consistent movement regardless of frame rate
- */
-
-// Add time properties to the game state
 gameState.time = {
-    lastUpdate: 0,  // Time of the last update
-    delta: 0,       // Time since last frame in seconds
-    fps: 60,        // Target frame rate
-    frameTime: 1000 / 60  // Target time for one frame in milliseconds
+    lastUpdate: 0,
+    delta: 0,
+    fps: 60,
+    frameTime: 1000 / 60
 };
 
 /**

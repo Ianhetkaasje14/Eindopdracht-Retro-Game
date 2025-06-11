@@ -26,7 +26,7 @@ canvas {
     display: block;
     margin: 0 auto;
     image-rendering: pixelated;
-    outline: none; /* Remove focus outline */
+    outline: none;
 }
 
 #ui {
