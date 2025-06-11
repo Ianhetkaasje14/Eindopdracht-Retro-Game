@@ -1,4 +1,3 @@
-
 // Simple Sprite class for handling game images and animations
 class Sprite {
     constructor(options) {
@@ -10,9 +9,21 @@ class Sprite {
 
         // Animation properties
         this.frames = options.frames || { max: 1, current: 0, elapsed: 0, hold: 10 };
+        
+        // 2D sprite sheet properties (for grid-based sprite sheets)
+        this.grid = options.grid || { rows: 1, cols: this.frames.max };
+        
+        // Animation set (which row to use for animation)
+        this.animationRow = options.animationRow || 0; // Default to first row
 
         // Direction (1 = right, -1 = left)
         this.direction = 1;
+    }
+
+    // Set which row of the sprite sheet to use for animation
+    setAnimationRow(row) {
+        this.animationRow = row;
+        this.frames.current = 0; // Reset to first frame of new animation
     }
 
     // Draw the sprite on the canvas
@@ -24,8 +35,16 @@ class Sprite {
             return;
         }
 
-        // Calculate the width of each frame in the sprite sheet
-        const frameWidth = this.image.width / this.frames.max;
+        // Calculate frame dimensions for 2D sprite sheet
+        const frameWidth = this.image.width / this.grid.cols;
+        const frameHeight = this.image.height / this.grid.rows;
+          // Calculate current frame position in the grid
+        const frameCol = this.frames.current % this.grid.cols;
+        const frameRow = this.animationRow; // Use the specified animation row
+        
+        // Calculate source coordinates
+        const sourceX = frameCol * frameWidth;
+        const sourceY = frameRow * frameHeight;
 
         // Save the current canvas state
         ctx.save();
@@ -37,14 +56,14 @@ class Sprite {
             ctx.scale(-1, 1);
             ctx.drawImage(
                 this.image,
-                this.frames.current * frameWidth, 0, frameWidth, this.image.height,
+                sourceX, sourceY, frameWidth, frameHeight,
                 0, 0, this.size.width, this.size.height
             );
         } else {
             // Normal drawing for right direction
             ctx.drawImage(
                 this.image,
-                this.frames.current * frameWidth, 0, frameWidth, this.image.height,
+                sourceX, sourceY, frameWidth, frameHeight,
                 this.position.x, this.position.y, this.size.width, this.size.height
             );
         }

@@ -14,13 +14,12 @@
  * Main gameState object - Stores all game data
  * This is the central object that keeps track of the entire game state
  */
-const gameState = {
-    // Player properties
+const gameState = {    // Player properties
     player: {
         x: 50,                // X position
         y: 0,                 // Y position
-        width: 32,            // Width of player
-        height: 32,           // Height of player
+        width: 32,            // Width of player (will be adjusted by sprite loader)
+        height: 32,           // Height of player (will be adjusted by sprite loader)
         velocityX: 0,         // Horizontal velocity
         velocityY: 0,         // Vertical velocity
         speed: 9,             // Movement speed

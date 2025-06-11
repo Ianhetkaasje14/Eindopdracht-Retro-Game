@@ -10,9 +10,8 @@
  * - https://craftpix.net/freebies/
  *
  * Be sure to respect licensing and attribution requirements.
- *
- * Expected sprites for this game:
- * - player.png: Player character sprite sheet
+ * * Expected sprites for this game:
+ * - duckie.png: Player character sprite sheet (duckie character)
  * - enemy.png: Enemy sprite sheet
  * - coin.png: Coin sprite sheet
  * - platform.png: Platform tiles

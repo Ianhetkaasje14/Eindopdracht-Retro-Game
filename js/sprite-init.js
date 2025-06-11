@@ -1,11 +1,10 @@
 /**
  * Initialize game sprites by loading images and creating sprite objects
  */
-async function initSprites() {
-    // List of image assets to load
+async function initSprites() {    // List of image assets to load
     const imageAssets = {
         images: {
-            player: 'assets/sprites/player.png',
+            player: 'assets/sprites/duckie.png',
             enemy: 'assets/sprites/enemy.png',
             coin: 'assets/sprites/coin.png',
             platform: 'assets/sprites/platform.png'
@@ -19,15 +18,40 @@ async function initSprites() {
 
     try {        // Load all images
         const loadedAssets = await assetLoader.loadAssets(imageAssets);
-        gameState.assets.images = loadedAssets.images;
-
-        // Create player sprite if image loaded successfully
+        gameState.assets.images = loadedAssets.images;        // Create player sprite if image loaded successfully
         if (gameState.assets.images.player) {
-            gameState.player.sprite = new Sprite({
+            const duckieImage = gameState.assets.images.player;
+            
+            // Configure for 4x4 sprite sheet
+            const gridRows = 4;
+            const gridCols = 4;
+            const frameWidth = duckieImage.width / gridCols;
+            const frameHeight = duckieImage.height / gridRows;
+            
+            // Use only the first row for walking animation (4 frames)
+            const walkingFrames = 4; // First row of the sprite sheet
+            
+            // Adjust player dimensions to match individual frame size
+            gameState.player.width = frameWidth;
+            gameState.player.height = frameHeight;
+            
+            console.log('Duckie 4x4 sprite setup:', {
+                totalWidth: duckieImage.width,
+                totalHeight: duckieImage.height,
+                gridRows: gridRows,
+                gridCols: gridCols,
+                frameWidth: frameWidth,
+                frameHeight: frameHeight,
+                walkingFrames: walkingFrames,
+                playerSize: { width: gameState.player.width, height: gameState.player.height }
+            });
+              gameState.player.sprite = new Sprite({
                 position: { x: gameState.player.x, y: gameState.player.y },
                 size: { width: gameState.player.width, height: gameState.player.height },
-                image: gameState.assets.images.player,
-                frames: { max: 4, current: 0, elapsed: 0, hold: 10 }
+                image: duckieImage,
+                frames: { max: walkingFrames, current: 0, elapsed: 0, hold: 8 },
+                grid: { rows: gridRows, cols: gridCols },
+                animationRow: 0  // Use first row for walking animation
             });
         }
 
